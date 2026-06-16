@@ -5,14 +5,15 @@ const envSchema = z.object({
   PORT: z.coerce.number(),
 
   DATABASE_URL: z.string(),
-  DATABASE_MAX_POOLS: z.number(),
+  DATABASE_MAX_POOLS: z.coerce.number(),
 
   REDIS_URL: z.string(),
 
   KAFKA_BROKERS: z.string().transform((s) => s.split(',')),
   KAFKA_CLIENT_ID: z.string().default('notification-service'),
 
-  RESEND_API_KEY: z.string(),
+  RESEND_PASSWORD: z.string(),
+  RESEND_EMAIL: z.email(),
 });
 
 const parsed = envSchema.safeParse(process.env);

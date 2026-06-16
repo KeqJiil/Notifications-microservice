@@ -6,4 +6,7 @@ export const kafka = new Kafka({
   brokers: env.KAFKA_BROKERS,
 });
 
-export const producer = kafka.producer({ idempotent: true });
+export const producer = kafka.producer({
+  idempotent: true,
+  maxInFlightRequests: 3,
+});
