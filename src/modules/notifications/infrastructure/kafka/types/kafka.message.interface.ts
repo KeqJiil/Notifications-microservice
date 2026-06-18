@@ -1,11 +1,3 @@
-import { KafkaEventType } from '@modules/notifications/infrastructure/kafka/types/index';
-
-export interface KafkaEventEnvelope<T = unknown> {
-  type: KafkaEventType;
-  occurredAt: string;
-  payload: T;
-}
-
 export interface SingleRecipientPayload {
   userId: string;
   channel: 'sms' | 'email' | 'inapp';
@@ -26,4 +18,17 @@ export interface ReservationPayload {
   checkIn: string;
   checkOut: string;
   propertyName: string;
+}
+
+export interface AccountCreatedPayload {
+  userId: string;
+  email: string;
+  phoneNumber: string;
+  settings: {
+    receive_phone_notifications: boolean;
+    receive_email_notifications: boolean;
+    receive_notifications: boolean;
+    receive_important_messages: boolean;
+    receive_not_important_messages: boolean;
+  };
 }

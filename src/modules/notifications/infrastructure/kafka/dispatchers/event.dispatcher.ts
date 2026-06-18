@@ -1,9 +1,9 @@
 import {
-  KafkaEventEnvelope,
+  KafkaEvent,
   KafkaEventType,
 } from '@modules/notifications/infrastructure/kafka/types';
 
-export type Handler = (payload: KafkaEventEnvelope) => Promise<void>;
+export type Handler = (payload: KafkaEvent) => Promise<void>;
 
 export class EventDispatcher {
   private eventMap = new Map<KafkaEventType, Handler>();
@@ -16,7 +16,7 @@ export class EventDispatcher {
 
   public async process(
     event: KafkaEventType,
-    payload: KafkaEventEnvelope,
+    payload: KafkaEvent,
   ): Promise<void> {
     const handler = this.eventMap.get(event);
     if (!handler) return;

@@ -1,4 +1,7 @@
-import { SingleRecipientPayload } from './kafka.message.interface';
+import {
+  AccountCreatedPayload,
+  SingleRecipientPayload,
+} from './kafka.message.interface';
 
 export const userEventNames = {
   able_to_leave_review: 'able_to_leave_review',
@@ -16,7 +19,7 @@ export type UserEvent =
     }
   | {
       type: typeof userEventNames.account_created;
-      payload: SingleRecipientPayload;
+      payload: AccountCreatedPayload;
     }
   | {
       type: typeof userEventNames.new_role_received;

@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import { env } from '@/common/secrets/env';
+import fastifySSE from '@fastify/sse';
 
 export function appBuilder() {
   const app = fastify({
@@ -11,5 +12,6 @@ export function appBuilder() {
     },
     disableRequestLogging: false,
   });
+  app.register(fastifySSE);
   return app;
 }

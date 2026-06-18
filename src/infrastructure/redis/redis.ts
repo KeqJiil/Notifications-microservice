@@ -1,7 +1,12 @@
 import Redis from 'ioredis';
 import { env } from '@/common/secrets/env';
 
-export const redis = new Redis(env.REDIS_URL, {
+export const pub = new Redis(env.REDIS_URL, {
+  lazyConnect: true,
+  maxRetriesPerRequest: 5,
+});
+
+export const sub = new Redis(env.REDIS_URL, {
   lazyConnect: true,
   maxRetriesPerRequest: 5,
 });
