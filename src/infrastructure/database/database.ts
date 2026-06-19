@@ -1,7 +1,7 @@
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { env } from '@/common/secrets/env';
-import { DB } from 'kysely-codegen';
+import { DB } from '@/infrastructure/database/types';
 
 export const db = new Kysely<DB>({
   dialect: new PostgresDialect({

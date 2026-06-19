@@ -1,7 +1,7 @@
 import {
   KafkaEvent,
   KafkaEventType,
-} from '@modules/notifications/infrastructure/kafka/types';
+} from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
 export type Handler = (payload: KafkaEvent) => Promise<void>;
 

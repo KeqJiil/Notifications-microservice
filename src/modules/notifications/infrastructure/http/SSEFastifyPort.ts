@@ -7,17 +7,16 @@ import { IPubSubService } from '@modules/notifications/application/abstractions/
 export class SSEFastifyPort implements ISSEService {
   constructor(private readonly pubSub: IPubSubService) {}
 
-  async handle(
-    request: FastifyRequest<{ Body: { userId: string } }>,
-    reply: FastifyReply,
-  ): Promise<void> {
-    const userId = request.body.userId;
+  async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const userId = request.user.userId;
     const channel = CHANNEL_NAME(userId);
 
-    reply.raw.setHeader('Content-Type', 'text/event-stream');
-    reply.raw.setHeader('Cache-Control', 'no-cache');
-    reply.raw.setHeader('Connection', 'keep-alive');
-    reply.raw.flushHeaders();
+    const headers = {
+      'Content-Type': 'text/event-stream',
+      Connection: 'keep-alive',
+      'Cache-Control': 'no-cache',
+    };
+    reply.raw.writeHead(200, headers);
 
     const handler = (message: PubSubMessage) => {
       reply.raw.write(`data: ${JSON.stringify(message)}`);

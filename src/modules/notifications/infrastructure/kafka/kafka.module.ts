@@ -7,8 +7,7 @@ import { startBookingKafkaConsumer } from '@modules/notifications/infrastructure
 import { startBillingKafkaConsumer } from '@modules/notifications/infrastructure/kafka/consumers/billing.consumer';
 import { startPropertyKafkaConsumer } from '@modules/notifications/infrastructure/kafka/consumers/property.consumer';
 
-export async function startKafkaConsumers() {
-  const eventDispatcher = new EventDispatcher();
+export async function startKafkaConsumers(eventDispatcher: EventDispatcher): Promise<void> {
   await Promise.all([
     startAuthKafkaConsumer(eventDispatcher),
     startUserKafkaConsumer(eventDispatcher),

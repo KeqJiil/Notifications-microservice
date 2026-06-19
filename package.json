@@ -7,8 +7,8 @@
     "dev": "tsx watch src/app/main.ts",
     "build": "tsc && tsc-alias",
     "start": "node dist/src/app/main.js",
-    "db:migrate": "kysely-ctl migrate latest",
-    "db:codegen": "kysely-codegen --url=$DATABASE_URL --out-file=src/infrastructure/postgres/types.ts"
+    "db:migrate": "kysely migrate latest",
+    "db:codegen": "kysely-codegen --url=$DATABASE_URL --out-file=src/infrastructure/database/types.ts"
   },
   "keywords": [
     "typescript",
