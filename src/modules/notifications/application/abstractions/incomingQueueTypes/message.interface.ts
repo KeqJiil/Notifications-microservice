@@ -1,19 +1,21 @@
+export type IChannelTypes = 'sms' | 'email' | 'inapp';
+
 export interface SingleRecipientPayload {
   userId: string;
-  channel: 'sms' | 'email' | 'inapp';
+  channel: IChannelTypes[];
   message: string;
 }
 
 export interface DualRecipientPayload {
   hostUserId: string;
   guestUserId: string;
-  channel: 'sms' | 'email' | 'inapp';
+  channel: IChannelTypes[];
   message: string;
 }
 
 export interface ReservationPayload {
   userId: string;
-  channel: 'email';
+  channel: Exclude<IChannelTypes, 'sms' | 'inapp'>;
   bookingId: string;
   checkIn: string;
   checkOut: string;

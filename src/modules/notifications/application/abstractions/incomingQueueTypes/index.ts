@@ -1,4 +1,4 @@
-export * from './kafka.message.interface';
+export * from './message.interface';
 export * from './auth.types';
 export * from './user.types';
 export * from './property.types';
@@ -15,13 +15,14 @@ import { BookingEvent } from './booking.types';
 import { BillingEvent } from './billing.types';
 import { ImportantEvent } from './important.types';
 
-export type KafkaEvent =
+export type Event = (
   | AuthEvent
   | UserEvent
   | PropertyEvent
   | ReviewEvent
   | BookingEvent
   | BillingEvent
-  | ImportantEvent;
+  | ImportantEvent
+) & { eventId: string };
 
-export type KafkaEventType = KafkaEvent['type'];
+export type EventType = Event['type'];

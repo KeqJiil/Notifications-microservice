@@ -1,15 +1,19 @@
 import {
   AccountCreatedPayload,
-  DualRecipientPayload,
+  IChannelTypes,
   ReservationPayload,
-  SingleRecipientPayload,
 } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
+export type OutboxDefaultMessagePayload = {
+  userId: string;
+  channel: IChannelTypes;
+  message: string;
+};
+
 export type OutboxPayload =
-  | SingleRecipientPayload
-  | DualRecipientPayload
-  | ReservationPayload
-  | AccountCreatedPayload;
+  | OutboxDefaultMessagePayload
+  | AccountCreatedPayload
+  | ReservationPayload;
 
 export interface OutboxRecord {
   id: string;

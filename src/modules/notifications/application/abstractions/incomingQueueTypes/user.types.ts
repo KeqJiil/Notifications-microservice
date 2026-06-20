@@ -1,7 +1,7 @@
 import {
   AccountCreatedPayload,
   SingleRecipientPayload,
-} from './kafka.message.interface';
+} from './message.interface';
 
 export const userEventNames = {
   able_to_leave_review: 'able_to_leave_review',

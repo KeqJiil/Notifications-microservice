@@ -1,6 +1,6 @@
 import { kafka } from '@/infrastructure/kafka/kafka';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
-import { KafkaEvent } from '@modules/notifications/application/abstractions/types';
+import { Event } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
 interface ConsumerOptions {
   topic: string;
@@ -37,7 +37,7 @@ export async function createKafkaConsumer({
         }
 
         try {
-          const event = JSON.parse(message.value.toString()) as KafkaEvent;
+          const event = JSON.parse(message.value.toString()) as Event;
           await dispatcher.process(event.type, event);
         } catch (err) {
           console.error(

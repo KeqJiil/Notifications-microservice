@@ -1,4 +1,4 @@
-import { SingleRecipientPayload } from './kafka.message.interface';
+import { SingleRecipientPayload } from './message.interface';
 
 export const authEventNames = {
   password_changed: 'password_changed',

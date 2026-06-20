@@ -9,6 +9,7 @@ import { KyselyTransactionContext } from '@modules/notifications/infrastructure/
 import { db } from '@/infrastructure/database/database';
 import { OutboxRepository } from '@modules/notifications/infrastructure/repositories/outbox.repository';
 import { InboxRepository } from '@modules/notifications/infrastructure/repositories/inbox.repository';
+import { UoWRepository } from '@modules/notifications/infrastructure/repositories/UoW.repository';
 
 export async function buildNotificationsModule(app: FastifyInstance) {
   const redisPubSub = new RedisPubSubFanOutService(pub, sub);
@@ -18,9 +19,10 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   const kyselyTxContext = new KyselyTransactionContext();
   const outboxRepository = new OutboxRepository(db, kyselyTxContext);
   const inboxRepository = new InboxRepository(db, kyselyTxContext);
+  const uow = new UoWRepository(db, kyselyTxContext);
 
   const eventDispatcher = new EventDispatcher();
-  await startKafkaConsumers(eventDispatcher);
+  await startKafkaConsumers(eventDispatcher, outboxRepository, uow);
   app.addHook('preHandler', async (request, reply) => {
     const userId = request.headers['x-user-id'];
     const role = request.headers['x-user-role'];

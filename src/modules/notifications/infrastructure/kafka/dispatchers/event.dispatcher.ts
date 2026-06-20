@@ -1,23 +1,20 @@
 import {
-  KafkaEvent,
-  KafkaEventType,
+  Event,
+  EventType,
 } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
-export type Handler = (payload: KafkaEvent) => Promise<void>;
+export type Handler = (payload: Event) => Promise<void>;
 
 export class EventDispatcher {
-  private eventMap = new Map<KafkaEventType, Handler>();
+  private eventMap = new Map<EventType, Handler>();
 
-  public register(type: KafkaEventType, handler: Handler): void {
+  public register(type: EventType, handler: Handler): void {
     const existingHandler = this.eventMap.get(type);
     if (existingHandler) return;
     this.eventMap.set(type, handler);
   }
 
-  public async process(
-    event: KafkaEventType,
-    payload: KafkaEvent,
-  ): Promise<void> {
+  public async process(event: EventType, payload: Event): Promise<void> {
     const handler = this.eventMap.get(event);
     if (!handler) return;
     await handler(payload);

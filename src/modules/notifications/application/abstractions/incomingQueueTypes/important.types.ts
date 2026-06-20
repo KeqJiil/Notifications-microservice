@@ -1,4 +1,4 @@
-import { SingleRecipientPayload } from './kafka.message.interface';
+import { SingleRecipientPayload } from './message.interface';
 
 export const importantEventNames = {
   forgot_password: 'forgot_password',
