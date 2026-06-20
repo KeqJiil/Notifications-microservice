@@ -8,6 +8,7 @@ import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dis
 import { KyselyTransactionContext } from '@modules/notifications/infrastructure/repositories/kyselyTransactionContext';
 import { db } from '@/infrastructure/database/database';
 import { OutboxRepository } from '@modules/notifications/infrastructure/repositories/outbox.repository';
+import { InboxRepository } from '@modules/notifications/infrastructure/repositories/inbox.repository';
 
 export async function buildNotificationsModule(app: FastifyInstance) {
   const redisPubSub = new RedisPubSubFanOutService(pub, sub);
@@ -16,6 +17,7 @@ export async function buildNotificationsModule(app: FastifyInstance) {
 
   const kyselyTxContext = new KyselyTransactionContext();
   const outboxRepository = new OutboxRepository(db, kyselyTxContext);
+  const inboxRepository = new InboxRepository(db, kyselyTxContext);
 
   const eventDispatcher = new EventDispatcher();
   await startKafkaConsumers(eventDispatcher);

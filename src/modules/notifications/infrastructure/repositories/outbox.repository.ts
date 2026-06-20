@@ -23,7 +23,9 @@ export class OutboxRepository implements IOutboxRepository {
       .values({
         event_id: eventId,
         payload: JSON.stringify(payload),
+        next_attempt_at: sql`NOW()`,
       })
+      .onConflict((oc) => oc.column('event_id').doNothing())
       .execute();
   }
 
