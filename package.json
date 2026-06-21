@@ -8,7 +8,8 @@
     "build": "tsc && tsc-alias",
     "start": "node dist/src/app/main.js",
     "db:migrate": "kysely migrate latest",
-    "db:codegen": "kysely-codegen --url=$DATABASE_URL --out-file=src/infrastructure/database/types.ts"
+    "db:codegen": "kysely-codegen --url=$DATABASE_URL --out-file=src/infrastructure/database/types.ts",
+    "test": "jest"
   },
   "keywords": [
     "typescript",
@@ -37,12 +38,14 @@
     "ioredis": "^5.11.1",
     "kafkajs": "^2.2.4",
     "kysely": "^0.29.2",
+    "node-schedule": "^2.1.1",
     "pg": "^8.21.0",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
     "prom-client": "^15.1.3",
     "rate-limiter-flexible": "^11.2.0",
-    "resend": "^6.12.4",
+    "resend": "^6.14.0",
+    "twilio": "^6.0.2",
     "uuid": "^14.0.0",
     "zod": "^4.4.3"
   },

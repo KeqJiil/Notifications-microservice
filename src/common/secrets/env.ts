@@ -14,6 +14,10 @@ const envSchema = z.object({
 
   RESEND_PASSWORD: z.string(),
   RESEND_EMAIL: z.email(),
+
+  TWILIO_SID: z.string(),
+  TWILIO_TOKEN: z.string(),
+  TWILIO_FROM_NUMBER: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);
