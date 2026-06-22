@@ -1,14 +1,11 @@
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { Email } from '@modules/notifications/domain/VO/Email.VO';
-import {
-  UserSettingKey,
-  UserSettings,
-} from '@modules/notifications/domain/VO/UserSettings.VO';
+import { UserSettingKey, UserSettings, } from '@modules/notifications/domain/VO/UserSettings.VO';
 import { AggregateRoot } from '@modules/notifications/domain/aggregate/AggregateRoot';
 import { PhoneNumberChangedEvent } from '@modules/notifications/domain/events/PhoneChanges.event';
 import { NotificationAccountCreatedEvent } from '@modules/notifications/domain/events/NotificationAccountCreated.event';
 
-export class AuthNotification extends AggregateRoot {
+export class UserNotification extends AggregateRoot {
   private constructor(
     private readonly _id: UserId,
     private readonly _email: Email,
@@ -24,7 +21,7 @@ export class AuthNotification extends AggregateRoot {
     phoneNumber: string | null,
     settings: UserSettings,
   ) {
-    const aggregate = new AuthNotification(id, email, phoneNumber, settings);
+    const aggregate = new UserNotification(id, email, phoneNumber, settings);
     aggregate.apply(new NotificationAccountCreatedEvent(id));
     return aggregate;
   }
@@ -35,7 +32,7 @@ export class AuthNotification extends AggregateRoot {
     phoneNumber: string | null,
     settings: UserSettings,
   ) {
-    return new AuthNotification(id, email, phoneNumber, settings);
+    return new UserNotification(id, email, phoneNumber, settings);
   }
 
   public changePhoneNumber(newPhoneNumber: string) {

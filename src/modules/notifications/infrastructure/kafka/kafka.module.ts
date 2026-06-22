@@ -24,7 +24,8 @@ import { billingEventNames } from '@modules/notifications/application/abstractio
 import { propertyEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/property.types';
 
 function toDispatcherHandler<T>(handler: IOutboxHandler<T>): Handler {
-  return (event) => handler.handle(event.eventId, event.payload as T);
+  return (event) =>
+    handler.handle(event.eventId, event.type, event.payload as T);
 }
 
 function registerIncomingHandlers(

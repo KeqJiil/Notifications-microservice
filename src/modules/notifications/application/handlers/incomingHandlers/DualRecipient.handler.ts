@@ -1,6 +1,9 @@
 import { IOutboxHandler } from '@modules/notifications/application/abstractions/outbox/IOutboxHandler.interface';
 import { IOutboxRepository } from '@modules/notifications/application/abstractions/outbox/OutboxRepository.interface';
-import { DualRecipientPayload } from '@modules/notifications/application/abstractions/incomingQueueTypes';
+import {
+  DualRecipientPayload,
+  EventType,
+} from '@modules/notifications/application/abstractions/incomingQueueTypes';
 import { UoWInterface } from '@modules/notifications/application/abstractions/UoW.interface';
 
 export class DualRecipientHandler implements IOutboxHandler<DualRecipientPayload> {
@@ -9,7 +12,11 @@ export class DualRecipientHandler implements IOutboxHandler<DualRecipientPayload
     private readonly uow: UoWInterface,
   ) {}
 
-  async handle(eventId: string, payload: DualRecipientPayload): Promise<void> {
+  async handle(
+    eventId: string,
+    type: EventType,
+    payload: DualRecipientPayload,
+  ): Promise<void> {
     const { hostUserId, guestUserId, channel, message } = payload;
     const recipients = [
       { role: 'host', userId: hostUserId },
@@ -23,6 +30,7 @@ export class DualRecipientHandler implements IOutboxHandler<DualRecipientPayload
             this.outbox.insert(`${eventId}:${role}:${ch}`, {
               userId,
               channel: ch,
+              type,
               message,
             }),
           ),

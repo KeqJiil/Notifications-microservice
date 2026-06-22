@@ -1,5 +1,6 @@
 import {
   AccountCreatedPayload,
+  EventType,
   IChannelTypes,
   ReservationPayload,
 } from '@modules/notifications/application/abstractions/incomingQueueTypes';
@@ -7,6 +8,7 @@ import {
 export type OutboxDefaultMessagePayload = {
   userId: string;
   channel: IChannelTypes;
+  type: EventType;
   message: string;
 };
 
