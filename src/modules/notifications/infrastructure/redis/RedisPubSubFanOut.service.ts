@@ -19,7 +19,7 @@ export class RedisPubSubFanOutService implements IPubSubService {
       let parsed: PubSubMessage;
       try {
         parsed = JSON.parse(raw) as PubSubMessage;
-      } catch (error) {
+      } catch {
         return;
       }
 

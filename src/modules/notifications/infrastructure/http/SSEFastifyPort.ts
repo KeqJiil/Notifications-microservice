@@ -10,6 +10,7 @@ export class SSEFastifyPort implements ISSEService {
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const userId = request.user.userId;
     const channel = CHANNEL_NAME(userId);
+    const seen = new Set<string>();
 
     const headers = {
       'Content-Type': 'text/event-stream',
@@ -19,12 +20,14 @@ export class SSEFastifyPort implements ISSEService {
     reply.raw.writeHead(200, headers);
 
     const handler = (message: PubSubMessage) => {
-      reply.raw.write(`data: ${JSON.stringify(message)}`);
+      if (seen.has(message.idempotencyKey)) return;
+      seen.add(message.idempotencyKey);
+      reply.raw.write(`data: ${JSON.stringify(message)}\n\n`);
     };
 
     await this.pubSub.sub(channel, handler);
-    request.raw.on('close', async () => {
-      await this.pubSub.unsub(channel, handler);
+    request.raw.on('close', () => {
+      void this.pubSub.unsub(channel, handler);
     });
   }
 }

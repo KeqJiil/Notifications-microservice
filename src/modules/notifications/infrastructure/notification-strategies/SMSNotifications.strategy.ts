@@ -2,7 +2,6 @@ import { Twilio } from 'twilio';
 import {
   IChannelStrategy,
   NotificationContext,
-  SendResult,
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
 import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
 
@@ -14,8 +13,8 @@ export class SMSNotificationsStrategy implements IChannelStrategy {
     private readonly fromNumber: string,
   ) {}
 
-  async send(ctx: NotificationContext): Promise<SendResult> {
-    if (!ctx.recipient.phoneNumber) return 'skipped';
+  async send(ctx: NotificationContext): Promise<void> {
+    if (!ctx.recipient.phoneNumber) return;
 
     const body = renderSmsTemplate(ctx.notification);
     await this.sender.messages.create({
@@ -23,7 +22,5 @@ export class SMSNotificationsStrategy implements IChannelStrategy {
       from: this.fromNumber,
       to: ctx.recipient.phoneNumber,
     });
-
-    return 'sent';
   }
 }

@@ -7,12 +7,11 @@ export interface NotificationContext {
   userId: UserId;
   recipient: { email: Email | null; phoneNumber: string | null };
   notification: NotificationPayload;
+  idempotencyKey: string;
   createdAt: Date;
 }
 
-export type SendResult = 'sent' | 'skipped';
-
 export interface IChannelStrategy {
   readonly channel: IChannelTypes;
-  send(ctx: NotificationContext): Promise<SendResult>;
+  send(ctx: NotificationContext): Promise<void>;
 }

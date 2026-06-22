@@ -2,7 +2,6 @@ import { OutboxDefaultMessagePayload } from '@modules/notifications/application/
 import { IInboxRepository } from '@modules/notifications/application/abstractions/inbox/InboxRepository.interface';
 import { IUserNotificationsRepository } from '@modules/notifications/application/abstractions/userNotifications/UserNotificationsRepository.interface';
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
-import { UoWInterface } from '@modules/notifications/application/abstractions/UoW.interface';
 import {
   IChannelStrategy,
   NotificationContext,
@@ -14,7 +13,6 @@ export class DefaultMessageUseCase {
     private readonly inbox: IInboxRepository,
     private readonly senders: Map<IChannelTypes, IChannelStrategy>,
     private readonly userRepository: IUserNotificationsRepository,
-    private readonly uow: UoWInterface,
   ) {}
 
   async execute(
@@ -23,33 +21,30 @@ export class DefaultMessageUseCase {
     createdAt: Date,
   ): Promise<void> {
     const inboxId = `${payload.channel}:${payload.userId}:${eventId}`;
-    await this.uow.run(async () => {
-      await this.inbox.insert(inboxId);
-    });
+    await this.inbox.insert(inboxId);
+    const inboxData = await this.inbox.get(inboxId);
+    if (inboxData?.success) return;
+
     const userId = new UserId(payload.userId);
     const user = await this.userRepository.findById(userId);
-    if (!user) return;
+    if (!user) throw new Error(`User with id ${userId.toString()} not found`);
 
     const strategy = this.senders.get(payload.channel);
-    if (strategy) {
-      const ctx: NotificationContext = {
-        userId,
-        recipient: { email: user.email, phoneNumber: user.phoneNumber },
-        notification: {
-          kind: 'message',
-          type: payload.type,
-          message: payload.message,
-        },
-        createdAt,
-      };
+    if (!strategy)
+      throw new Error(`Unable to find channel id ${payload.channel}`);
+    const ctx: NotificationContext = {
+      userId,
+      recipient: { email: user.email, phoneNumber: user.phoneNumber },
+      notification: {
+        kind: 'message',
+        type: payload.type,
+        message: payload.message,
+      },
+      idempotencyKey: `${payload.channel}:${payload.userId}:${eventId}`,
+      createdAt,
+    };
 
-      const result = await strategy.send(ctx);
-      if (result === 'sent') {
-        await this.uow.run(() =>
-          this.inbox.changeStage(inboxId, payload.channel),
-        );
-      }
-    }
+    await strategy.send(ctx);
 
     await this.inbox.markSuccess(inboxId);
   }
