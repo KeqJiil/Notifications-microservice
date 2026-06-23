@@ -17,10 +17,10 @@ export type OutboxPayload =
   | AccountCreatedPayload
   | ReservationPayload;
 
-export interface OutboxRecord {
+export interface OutboxRecord<T extends OutboxPayload = OutboxPayload> {
   id: string;
   eventId: string;
-  payload: OutboxPayload;
+  payload: T;
   retries: number;
   createdAt: Date;
 }

@@ -1,10 +1,15 @@
-import { OutboxRecord } from '@modules/notifications/application/abstractions/outbox/OutboxRecord.interface';
+import {
+  OutboxPayload,
+  OutboxRecord,
+} from '@modules/notifications/application/abstractions/outbox/OutboxRecord.interface';
 import { EventType } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
-type IUseCase = (payload: OutboxRecord) => Promise<void>;
+export interface IUseCase<T extends OutboxPayload = OutboxPayload> {
+  execute(payload: OutboxRecord<T>): Promise<void>;
+}
 
 export class UseCaseDispatcher {
-  private useCaseMap: Map<EventType, IUseCase>;
+  private useCaseMap = new Map<EventType, IUseCase>();
 
   register(type: EventType, useCase: IUseCase): void {
     const existingHandler = this.useCaseMap.get(type);
@@ -15,6 +20,6 @@ export class UseCaseDispatcher {
   async handle(type: EventType, payload: OutboxRecord): Promise<void> {
     const handler = this.useCaseMap.get(type);
     if (!handler) return;
-    await handler(payload);
+    await handler.execute(payload);
   }
 }
