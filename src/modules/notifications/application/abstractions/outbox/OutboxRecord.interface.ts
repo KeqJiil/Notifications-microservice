@@ -2,7 +2,6 @@ import {
   AccountCreatedPayload,
   EventType,
   IChannelTypes,
-  ReservationPayload,
 } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
 export type OutboxDefaultMessagePayload = {
@@ -12,10 +11,7 @@ export type OutboxDefaultMessagePayload = {
   message: string;
 };
 
-export type OutboxPayload =
-  | OutboxDefaultMessagePayload
-  | AccountCreatedPayload
-  | ReservationPayload;
+export type OutboxPayload = OutboxDefaultMessagePayload | AccountCreatedPayload;
 
 export interface OutboxRecord<T extends OutboxPayload = OutboxPayload> {
   id: string;

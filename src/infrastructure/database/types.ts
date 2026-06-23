@@ -3,13 +3,16 @@
  * Please do not edit it manually.
  */
 
-import type { ColumnType } from "kysely";
+import type { ColumnType } from 'kysely';
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+  T extends ColumnType<infer S, infer I, infer U>
+    ? ColumnType<S, I | undefined, U>
+    : ColumnType<T, T | undefined, T>;
 
 export type Json = JsonValue;
+
+export type OutboxStatus = 'DEAD' | 'PENDING' | 'SUCCESS';
 
 export type JsonArray = JsonValue[];
 
@@ -46,7 +49,7 @@ export interface Outbox {
   next_attempt_at: Timestamp | null;
   payload: Json;
   retries: Generated<number | null>;
-  success: Generated<boolean>;
+  status: Generated<OutboxStatus>;
 }
 
 export interface UserNotifications {

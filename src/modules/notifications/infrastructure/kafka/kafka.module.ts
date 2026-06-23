@@ -22,6 +22,7 @@ import { reviewEventNames } from '@modules/notifications/application/abstraction
 import { bookingEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/booking.types';
 import { billingEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/billing.types';
 import { propertyEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/property.types';
+import { startKafkaDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
 
 function toDispatcherHandler<T>(handler: IOutboxHandler<T>): Handler {
   return (event) =>
@@ -91,5 +92,6 @@ export async function startKafkaConsumers(
     startBookingKafkaConsumer(eventDispatcher),
     startBillingKafkaConsumer(eventDispatcher),
     startPropertyKafkaConsumer(eventDispatcher),
+    startKafkaDlqProducer(),
   ]);
 }

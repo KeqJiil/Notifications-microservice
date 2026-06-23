@@ -6,6 +6,7 @@ import {
   OutboxRecord,
 } from '@modules/notifications/application/abstractions/outbox/OutboxRecord.interface';
 import { KyselyTransactionContext } from '@modules/notifications/infrastructure/repositories/kyselyTransactionContext';
+import { OUTBOX_LEASE_MS } from '@/common/consts/outboxConsts';
 
 export class OutboxRepository implements IOutboxRepository {
   constructor(
@@ -30,20 +31,30 @@ export class OutboxRepository implements IOutboxRepository {
   }
 
   async claimBatch(limit: number = 50): Promise<OutboxRecord[]> {
-    const batch = await this.tx
-      .selectFrom('outbox')
-      .select(['id', 'event_id', 'payload', 'retries', 'created_at'])
-      .where((eb) =>
-        eb.and([
-          eb('success', '=', false),
-          eb('next_attempt_at', '<', sql<Date>`NOW()`),
-        ]),
+    const leaseUntil = new Date(Date.now() + OUTBOX_LEASE_MS);
+
+    const claimed = await this.tx
+      .updateTable('outbox')
+      .set({ next_attempt_at: leaseUntil })
+      .where('id', 'in', (eb) =>
+        eb
+          .selectFrom('outbox')
+          .select('id')
+          .where((eb2) =>
+            eb2.and([
+              eb2('status', '=', 'PENDING'),
+              eb2('next_attempt_at', '<', sql<Date>`NOW()`),
+            ]),
+          )
+          .orderBy('next_attempt_at', 'asc')
+          .limit(limit)
+          .forUpdate()
+          .skipLocked(),
       )
-      .limit(limit)
-      .forUpdate()
-      .skipLocked()
+      .returning(['id', 'event_id', 'payload', 'retries', 'created_at'])
       .execute();
-    return batch.map((row) => ({
+
+    return claimed.map((row) => ({
       id: row.id,
       eventId: row.event_id,
       payload: row.payload as unknown as OutboxPayload,
@@ -55,18 +66,26 @@ export class OutboxRepository implements IOutboxRepository {
   async markSucceed(id: string): Promise<void> {
     await this.tx
       .updateTable('outbox')
-      .set({ success: true })
+      .set({ status: 'SUCCESS' })
       .where('id', '=', id)
       .execute();
   }
 
-  async markFailed(id: string, nextAttemptAt: Date): Promise<void> {
+  async retry(id: string, nextAttemptAt: Date): Promise<void> {
     await this.tx
       .updateTable('outbox')
       .set((eb) => ({
         next_attempt_at: nextAttemptAt,
         retries: eb('retries', '+', 1),
       }))
+      .where('id', '=', id)
+      .execute();
+  }
+
+  async markDead(id: string): Promise<void> {
+    await this.tx
+      .updateTable('outbox')
+      .set(() => ({ status: 'DEAD' }))
       .where('id', '=', id)
       .execute();
   }

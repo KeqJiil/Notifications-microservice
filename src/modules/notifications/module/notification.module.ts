@@ -7,7 +7,7 @@ import { FanOutService } from '@modules/notifications/application/services/FanOu
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
 import { KyselyTransactionContext } from '@modules/notifications/infrastructure/repositories/kyselyTransactionContext';
 import { db } from '@/infrastructure/database/database';
-import { OutboxRepository } from '@modules/notifications/infrastructure/repositories/outbox.repository';
+import { OutboxRepository } from '@modules/notifications/infrastructure/repositories/outbox/outbox.repository';
 import { InboxRepository } from '@modules/notifications/infrastructure/repositories/inbox.repository';
 import { UoWRepository } from '@modules/notifications/infrastructure/repositories/UoW.repository';
 

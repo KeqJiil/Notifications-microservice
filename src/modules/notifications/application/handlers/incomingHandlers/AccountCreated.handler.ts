@@ -1,6 +1,9 @@
 import { IOutboxHandler } from '@modules/notifications/application/abstractions/outbox/IOutboxHandler.interface';
 import { IOutboxRepository } from '@modules/notifications/application/abstractions/outbox/OutboxRepository.interface';
-import { AccountCreatedPayload, EventType, } from '@modules/notifications/application/abstractions/incomingQueueTypes';
+import {
+  AccountCreatedPayload,
+  EventType,
+} from '@modules/notifications/application/abstractions/incomingQueueTypes';
 import { UoWInterface } from '@modules/notifications/application/abstractions/UoW.interface';
 
 export class AccountCreatedHandler implements IOutboxHandler<AccountCreatedPayload> {

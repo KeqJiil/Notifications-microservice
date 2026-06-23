@@ -11,6 +11,7 @@ import {
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
 import { IChannelTypes } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 import { IUseCase } from '@modules/notifications/application/services/useCase.dispatcher';
+import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
 
 export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePayload> {
   constructor(
@@ -29,11 +30,16 @@ export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePaylo
 
     const userId = new UserId(payload.payload.userId);
     const user = await this.userRepository.findById(userId);
-    if (!user) throw new Error(`User with id ${userId.toString()} not found`);
+    if (!user)
+      throw new NonRetryableException(
+        `User with id ${userId.toString()} not found`,
+      );
 
     const strategy = this.senders.get(payload.payload.channel);
     if (!strategy)
-      throw new Error(`Unable to find channel id ${payload.payload.channel}`);
+      throw new NonRetryableException(
+        `Unable to find channel id ${payload.payload.channel}`,
+      );
     const ctx: NotificationContext = {
       userId,
       recipient: { email: user.email, phoneNumber: user.phoneNumber },

@@ -1,3 +1,5 @@
+import { EventType } from '@modules/notifications/application/abstractions/incomingQueueTypes/index';
+
 export type IChannelTypes = 'sms' | 'email' | 'inapp';
 
 export interface SingleRecipientPayload {
@@ -23,6 +25,7 @@ export interface ReservationPayload {
 }
 
 export interface AccountCreatedPayload {
+  type: EventType;
   userId: string;
   email: string;
   phoneNumber: string;

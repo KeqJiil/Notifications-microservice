@@ -13,3 +13,5 @@ export const KAFKA_PROPERTY_GROUP_ID = 'notifications.property';
 export const KAFKA_REVIEW_GROUP_ID = 'notifications.review';
 export const KAFKA_BILLING_GROUP_ID = 'notifications.billing';
 export const KAFKA_IMPORTANT_GROUP_ID = 'notifications.important';
+
+export const KAFKA_DLQ_TOPIC = 'notification.dlq';

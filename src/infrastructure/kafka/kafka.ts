@@ -5,8 +5,3 @@ export const kafka = new Kafka({
   clientId: env.KAFKA_CLIENT_ID,
   brokers: env.KAFKA_BROKERS,
 });
-
-export const producer = kafka.producer({
-  idempotent: true,
-  maxInFlightRequests: 3,
-});
