@@ -41,3 +41,7 @@ export async function gracefulShutdownDlqProducer() {
     dlqProducer = null;
   }
 }
+
+export function isDlqProducerConnected(): boolean {
+  return dlqProducer !== null;
+}

@@ -1,4 +1,5 @@
 import { kafka } from '@/infrastructure/kafka/kafka';
+import { trackConsumerHealth } from '@/infrastructure/kafka/kafkaHealth';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
 import { Event } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 
@@ -14,6 +15,7 @@ export async function createKafkaConsumer({
   dispatcher,
 }: ConsumerOptions): Promise<void> {
   const consumer = kafka.consumer({ groupId });
+  trackConsumerHealth(groupId, consumer);
 
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
