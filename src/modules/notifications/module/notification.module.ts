@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { RedisPubSubFanOutService } from '@modules/notifications/infrastructure/redis/RedisPubSubFanOut.service';
 import { pub, sub } from '@/infrastructure/redis/redis';
 import { SSEFastifyPort } from '@modules/notifications/infrastructure/http/SSEFastifyPort';
+import { FeedFastifyPort } from '@modules/notifications/infrastructure/http/FeedFastifyPort';
+import { FeedRepository } from '@modules/notifications/infrastructure/repositories/feed.repository';
 import { startKafkaConsumers } from '@modules/notifications/infrastructure/kafka/kafka.module';
 import { FanOutService } from '@modules/notifications/application/services/FanOut.service';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
@@ -19,6 +21,8 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   const kyselyTxContext = new KyselyTransactionContext();
   const outboxRepository = new OutboxRepository(db, kyselyTxContext);
   const inboxRepository = new InboxRepository(db, kyselyTxContext);
+  const feedRepository = new FeedRepository(db, kyselyTxContext);
+  const feedHttp = new FeedFastifyPort(feedRepository);
   const uow = new UoWRepository(db, kyselyTxContext);
 
   const eventDispatcher = new EventDispatcher();
@@ -37,4 +41,5 @@ export async function buildNotificationsModule(app: FastifyInstance) {
     };
   });
   app.get(`/notifications`, httpSSE.handle.bind(httpSSE));
+  app.get(`/notifications/feed`, feedHttp.handle.bind(feedHttp));
 }

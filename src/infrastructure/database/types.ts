@@ -36,7 +36,7 @@ export interface Inbox {
 
 export interface Notifications {
   created_at: Generated<Timestamp>;
-  event_id: string;
+  idempotency_key: string;
   id: Generated<string>;
   payload: Json | null;
   user_id: string;

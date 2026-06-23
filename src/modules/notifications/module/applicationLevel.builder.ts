@@ -9,6 +9,7 @@ import { InAppNotificationsStrategy } from '@modules/notifications/infrastructur
 import { IFanOutService } from '@modules/notifications/application/abstractions/FanOutService.interface';
 import { IInboxRepository } from '@modules/notifications/application/abstractions/inbox/InboxRepository.interface';
 import { IUserNotificationsRepository } from '@modules/notifications/application/abstractions/userNotifications/UserNotificationsRepository.interface';
+import { IFeedRepository } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 import { IChannelStrategy } from '@modules/notifications/application/abstractions/notifications';
 import {
   DEFAULT_MESSAGE_EVENT_TYPES,
@@ -21,6 +22,7 @@ export function useCasesBuilder(
   fanout: IFanOutService,
   inbox: IInboxRepository,
   userRepo: IUserNotificationsRepository,
+  feedRepository: IFeedRepository,
 ) {
   const useCaseDispatcher = new UseCaseDispatcher();
 
@@ -32,7 +34,7 @@ export function useCasesBuilder(
     env.RESEND_EMAIL,
   );
   const smsStrategy = new SMSNotificationsStrategy(twilio, ''); //TODO
-  const inappSender = new InAppNotificationsStrategy(fanout);
+  const inappSender = new InAppNotificationsStrategy(fanout, feedRepository);
   const strategyMap = new Map<IChannelTypes, IChannelStrategy>();
   strategyMap.set('email', emailStrategy);
   strategyMap.set('inapp', inappSender);
