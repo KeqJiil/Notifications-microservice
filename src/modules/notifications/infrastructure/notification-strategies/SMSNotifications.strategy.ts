@@ -1,9 +1,10 @@
-import { Twilio } from 'twilio';
+import { RestException, Twilio } from 'twilio';
 import {
   IChannelStrategy,
   NotificationContext,
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
 import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
+import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
 
 export class SMSNotificationsStrategy implements IChannelStrategy {
   readonly channel = 'sms' as const;
@@ -17,10 +18,24 @@ export class SMSNotificationsStrategy implements IChannelStrategy {
     if (!ctx.recipient.phoneNumber) return;
 
     const body = renderSmsTemplate(ctx.notification);
-    await this.sender.messages.create({
-      body,
-      from: this.fromNumber,
-      to: ctx.recipient.phoneNumber,
-    });
+    try {
+      await this.sender.messages.create({
+        body,
+        from: this.fromNumber,
+        to: ctx.recipient.phoneNumber,
+      });
+    } catch (err) {
+      if (
+        err instanceof RestException &&
+        err.status >= 400 &&
+        err.status < 500 &&
+        err.status !== 429
+      ) {
+        throw new NonRetryableException(
+          `Twilio error ${err.status}: ${err.message}`,
+        );
+      }
+      throw err;
+    }
   }
 }

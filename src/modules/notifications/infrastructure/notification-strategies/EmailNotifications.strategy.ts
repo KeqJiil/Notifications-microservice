@@ -4,6 +4,8 @@ import {
   NotificationContext,
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
 import { renderEmailTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/email';
+import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
+import { RetryableException } from '@/common/errors/Retryable.exception';
 
 export class EmailNotificationsStrategy implements IChannelStrategy {
   readonly channel = 'email' as const;
@@ -17,7 +19,7 @@ export class EmailNotificationsStrategy implements IChannelStrategy {
     if (!ctx.recipient.email) return;
 
     const { subject, html } = renderEmailTemplate(ctx.notification);
-    await this.sender.emails.send(
+    const { error } = await this.sender.emails.send(
       {
         from: this.fromEmail,
         to: ctx.recipient.email.toString(),
@@ -27,6 +29,23 @@ export class EmailNotificationsStrategy implements IChannelStrategy {
       {
         idempotencyKey: ctx.idempotencyKey,
       },
+    );
+
+    if (!error) return;
+
+    const isNonRetryable =
+      error.statusCode !== null &&
+      error.statusCode >= 400 &&
+      error.statusCode < 500 &&
+      error.statusCode !== 429;
+
+    if (isNonRetryable) {
+      throw new NonRetryableException(
+        `Resend error ${error.name}: ${error.message}`,
+      );
+    }
+    throw new RetryableException(
+      `Resend error ${error.name}: ${error.message}`,
     );
   }
 }

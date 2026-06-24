@@ -2,7 +2,7 @@ import {
   IChannelStrategy,
   NotificationContext,
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
-import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
+import { renderInAppTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/inapp';
 import { IFanOutService } from '@modules/notifications/application/abstractions/FanOutService.interface';
 import { IFeedRepository } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 
@@ -16,7 +16,7 @@ export class InAppNotificationsStrategy implements IChannelStrategy {
 
   async send(ctx: NotificationContext): Promise<void> {
     const userId = ctx.userId.toString();
-    const message = renderSmsTemplate(ctx.notification);
+    const message = renderInAppTemplate(ctx.notification);
 
     await this.feed.insert({
       idempotencyKey: ctx.idempotencyKey,

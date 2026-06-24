@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { ISSEService } from '@modules/notifications/infrastructure/http/SSEService.interface';
-import { CHANNEL_NAME } from '@/common/consts/PubSub.consts';
+import { CHANNEL_NAME, SSE_SEEN_MAX } from '@/common/consts/PubSub.consts';
 import { PubSubMessage } from '@modules/notifications/application/abstractions/PubSubMessage.interface';
 import { IPubSubService } from '@modules/notifications/application/abstractions/PubSub.interface';
 
@@ -21,7 +21,13 @@ export class SSEFastifyPort implements ISSEService {
 
     const handler = (message: PubSubMessage) => {
       if (seen.has(message.idempotencyKey)) return;
+
+      if (seen.size >= SSE_SEEN_MAX) {
+        const oldest = seen.keys().next().value;
+        if (oldest !== undefined) seen.delete(oldest);
+      }
       seen.add(message.idempotencyKey);
+
       reply.raw.write(`data: ${JSON.stringify(message)}\n\n`);
     };
 

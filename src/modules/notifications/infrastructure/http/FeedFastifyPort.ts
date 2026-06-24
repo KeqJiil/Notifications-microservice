@@ -5,12 +5,19 @@ import {
   IFeedRepository,
 } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
+import { BadRequestException } from '@/common/errors/HTTPData.Exceptions';
 
 function decodeCursor(cursor: string): IFeedCursor {
-  const [createdAt, id] = Buffer.from(cursor, 'base64')
+  const [createdAtRaw, id] = Buffer.from(cursor, 'base64')
     .toString('utf8')
     .split('_');
-  return { createdAt: new Date(createdAt), id };
+
+  const createdAt = new Date(createdAtRaw);
+  if (!id || Number.isNaN(createdAt.getTime())) {
+    throw new BadRequestException();
+  }
+
+  return { createdAt, id };
 }
 
 function encodeCursor(cursor: IFeedCursor): string {

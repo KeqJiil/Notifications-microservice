@@ -12,6 +12,7 @@ import {
 import { IChannelTypes } from '@modules/notifications/application/abstractions/incomingQueueTypes';
 import { IUseCase } from '@modules/notifications/application/services/useCase.dispatcher';
 import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
+import { NotificationSend } from '@modules/notifications/application/policies/NotificationSend.policy';
 
 export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePayload> {
   constructor(
@@ -34,6 +35,9 @@ export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePaylo
       throw new NonRetryableException(
         `User with id ${userId.toString()} not found`,
       );
+
+    if (!NotificationSend.isAbleToSend(user.settings, payload.payload.channel))
+      return;
 
     const strategy = this.senders.get(payload.payload.channel);
     if (!strategy)

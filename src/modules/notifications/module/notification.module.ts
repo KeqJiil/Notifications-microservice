@@ -12,6 +12,12 @@ import { db } from '@/infrastructure/database/database';
 import { OutboxRepository } from '@modules/notifications/infrastructure/repositories/outbox/outbox.repository';
 import { InboxRepository } from '@modules/notifications/infrastructure/repositories/inbox.repository';
 import { UoWRepository } from '@modules/notifications/infrastructure/repositories/UoW.repository';
+import { useCasesBuilder } from '@modules/notifications/module/applicationLevel.builder';
+import { UserNotificationsRepository } from '@modules/notifications/infrastructure/repositories/userNotifications.repository';
+import { OutboxPoller } from '@modules/notifications/infrastructure/repositories/outbox/OutboxPoller';
+import { OUTBOX_POLLER_TIMEOUT } from '@/common/consts/outboxConsts';
+import { disconnectAllKafkaConsumer } from '@/infrastructure/kafka/kafkaHealth';
+import { gracefulShutdownDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
 
 export async function buildNotificationsModule(app: FastifyInstance) {
   const redisPubSub = new RedisPubSubFanOutService(pub, sub);
@@ -24,6 +30,16 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   const feedRepository = new FeedRepository(db, kyselyTxContext);
   const feedHttp = new FeedFastifyPort(feedRepository);
   const uow = new UoWRepository(db, kyselyTxContext);
+  const userRepo = new UserNotificationsRepository(db, kyselyTxContext);
+
+  const useCasesDispatcher = useCasesBuilder(
+    fanOutService,
+    inboxRepository,
+    userRepo,
+    feedRepository,
+  );
+
+  const outboxPoller = new OutboxPoller(useCasesDispatcher, outboxRepository);
 
   const eventDispatcher = new EventDispatcher();
   await startKafkaConsumers(eventDispatcher, outboxRepository, uow);
@@ -42,4 +58,15 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   });
   app.get(`/notifications`, httpSSE.handle.bind(httpSSE));
   app.get(`/notifications/feed`, feedHttp.handle.bind(feedHttp));
+
+  outboxPoller.start(OUTBOX_POLLER_TIMEOUT);
+
+  app.addHook('onClose', async () => {
+    await outboxPoller.stop();
+    await disconnectAllKafkaConsumer();
+    await gracefulShutdownDlqProducer();
+    await db.destroy();
+    await pub.quit();
+    await sub.quit();
+  });
 }

@@ -24,5 +24,6 @@ export function appBuilder() {
       url: '/health/live',
     },
   });
+
   return app;
 }

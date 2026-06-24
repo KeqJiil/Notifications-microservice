@@ -15,3 +15,5 @@ export const KAFKA_BILLING_GROUP_ID = 'notifications.billing';
 export const KAFKA_IMPORTANT_GROUP_ID = 'notifications.important';
 
 export const KAFKA_DLQ_TOPIC = 'notification.dlq';
+export const KAFKA_INCOMING_DLQ_TOPIC = 'notification.incoming.dlq';
+export const KAFKA_CONSUMER_RETRY_DELAY_MS = 2_000;

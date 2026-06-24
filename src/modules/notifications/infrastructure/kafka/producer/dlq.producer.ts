@@ -19,12 +19,15 @@ export async function startKafkaDlqProducer() {
   await dlqProducer.connect();
 }
 
-export async function sendToDlqProducer(messages: Message[]) {
+export async function sendToDlqProducer(
+  messages: Message[],
+  topic: string = KAFKA_DLQ_TOPIC,
+) {
   if (!dlqProducer) throw new Error('Producer not found');
 
   try {
     await dlqProducer.send({
-      topic: KAFKA_DLQ_TOPIC,
+      topic,
       messages,
       acks: -1,
     });
