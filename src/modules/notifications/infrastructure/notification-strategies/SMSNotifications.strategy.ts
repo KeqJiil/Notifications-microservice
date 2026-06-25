@@ -5,6 +5,7 @@ import {
 } from '@modules/notifications/application/abstractions/notifications/notificationsStrategy';
 import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
 import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
+import { isClientErrorStatus } from '@/common/errors/helpers/isClientErrorStatus';
 
 export class SMSNotificationsStrategy implements IChannelStrategy {
   readonly channel = 'sms' as const;
@@ -25,12 +26,7 @@ export class SMSNotificationsStrategy implements IChannelStrategy {
         to: ctx.recipient.phoneNumber,
       });
     } catch (err) {
-      if (
-        err instanceof RestException &&
-        err.status >= 400 &&
-        err.status < 500 &&
-        err.status !== 429
-      ) {
+      if (err instanceof RestException && isClientErrorStatus(err.status)) {
         throw new NonRetryableException(
           `Twilio error ${err.status}: ${err.message}`,
         );

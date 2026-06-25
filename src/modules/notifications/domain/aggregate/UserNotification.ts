@@ -1,6 +1,9 @@
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { Email } from '@modules/notifications/domain/VO/Email.VO';
-import { UserSettingKey, UserSettings, } from '@modules/notifications/domain/VO/UserSettings.VO';
+import {
+  UserSettingKey,
+  UserSettings,
+} from '@modules/notifications/domain/VO/UserSettings.VO';
 import { AggregateRoot } from '@modules/notifications/domain/aggregate/AggregateRoot';
 import { PhoneNumberChangedEvent } from '@modules/notifications/domain/events/PhoneChanges.event';
 import { NotificationAccountCreatedEvent } from '@modules/notifications/domain/events/NotificationAccountCreated.event';

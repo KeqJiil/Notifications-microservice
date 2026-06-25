@@ -33,7 +33,10 @@ export function useCasesBuilder(
     resend,
     env.RESEND_EMAIL,
   );
-  const smsStrategy = new SMSNotificationsStrategy(twilio, ''); //TODO
+  const smsStrategy = new SMSNotificationsStrategy(
+    twilio,
+    env.TWILIO_FROM_NUMBER,
+  );
   const inappSender = new InAppNotificationsStrategy(fanout, feedRepository);
   const strategyMap = new Map<IChannelTypes, IChannelStrategy>();
   strategyMap.set('email', emailStrategy);

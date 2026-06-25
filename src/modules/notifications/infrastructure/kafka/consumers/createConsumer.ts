@@ -1,19 +1,9 @@
-import { ZodError } from 'zod';
 import { kafka } from '@/infrastructure/kafka/kafka';
 import { trackConsumerHealth } from '@/infrastructure/kafka/kafkaHealth';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
-import { Event } from '@modules/notifications/application/abstractions/incomingQueueTypes';
-import {
-  eventEnvelopeSchema,
-  getPayloadSchema,
-} from '@modules/notifications/application/abstractions/incomingQueueTypes/event.schema';
-import { logger } from '@/app/logger';
-import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
-import { sendToDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
-import {
-  KAFKA_CONSUMER_RETRY_DELAY_MS,
-  KAFKA_INCOMING_DLQ_TOPIC,
-} from '@/common/consts/infrastucture.consts';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { kafkaRateLimiterConfig } from '@modules/notifications/infrastructure/rateLimiter/configs';
+import { processKafkaMessage } from '@modules/notifications/infrastructure/kafka/consumers/processKafkaMessage';
 
 interface ConsumerOptions {
   topic: string;
@@ -32,6 +22,8 @@ export async function createKafkaConsumer({
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
 
+  const rateLimiter = new RateLimiterMemory(kafkaRateLimiterConfig);
+
   await consumer.run({
     autoCommit: false,
     eachBatch: async ({
@@ -44,46 +36,16 @@ export async function createKafkaConsumer({
       for (const message of batch.messages) {
         if (isStale()) break;
 
-        if (message.value === null) {
-          resolveOffset(message.offset);
-          await heartbeat();
-          continue;
-        }
+        const { shouldCommit, shouldStopBatch } = await processKafkaMessage(
+          message,
+          topic,
+          dispatcher,
+          rateLimiter,
+        );
 
-        try {
-          const raw = JSON.parse(message.value.toString());
-          const envelope = eventEnvelopeSchema.parse(raw);
-          const payload = getPayloadSchema(envelope.type).parse(
-            envelope.payload,
-          );
-          const event = { ...envelope, payload } as Event;
-          await dispatcher.process(event.type, event);
-        } catch (err) {
-          const isNonRetryable =
-            err instanceof SyntaxError ||
-            err instanceof ZodError ||
-            err instanceof NonRetryableException;
-          if (isNonRetryable) {
-            logger.error(
-              `[Kafka] Non-retryable, sending to DLQ. Topic "${topic}" offset ${message.offset}:`,
-            );
-
-            await sendToDlqProducer([message], KAFKA_INCOMING_DLQ_TOPIC);
-            resolveOffset(message.offset);
-            await heartbeat();
-            continue;
-          }
-          logger.error(
-            `[Kafka] Retryable failure, will redeliver. Topic "${topic}" offset ${message.offset}:`,
-          );
-          await new Promise((resolve) =>
-            setTimeout(resolve, KAFKA_CONSUMER_RETRY_DELAY_MS),
-          );
-          break;
-        }
-
-        resolveOffset(message.offset);
+        if (shouldCommit) resolveOffset(message.offset);
         await heartbeat();
+        if (shouldStopBatch) break;
       }
 
       await commitOffsetsIfNecessary();

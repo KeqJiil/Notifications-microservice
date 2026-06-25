@@ -3,7 +3,10 @@ import { IFeedService } from '@modules/notifications/infrastructure/http/FeedSer
 import { IFeedRepository } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { BadRequestException } from '@/common/errors/HTTPData.Exceptions';
-import { decodeCursor, encodeCursor, } from '@modules/notifications/infrastructure/http/feedCursor';
+import {
+  decodeCursor,
+  encodeCursor,
+} from '@modules/notifications/infrastructure/http/feedCursor';
 import { feedQuerySchema } from '@modules/notifications/infrastructure/http/schemas/feedQuery.schema';
 
 export class FeedFastifyPort implements IFeedService {

@@ -1,7 +1,9 @@
 import { NotificationPayloadOfKind } from '@modules/notifications/application/abstractions/notifications/NotificationPayload';
 import { EmailContent } from '@modules/notifications/infrastructure/notification-strategies/templates/email/EmailContent.interface';
 
-export function renderAccountCreatedEmail(notification: NotificationPayloadOfKind<'accountCreated'>): EmailContent {
+export function renderAccountCreatedEmail(
+  notification: NotificationPayloadOfKind<'accountCreated'>,
+): EmailContent {
   const { email } = notification.data;
   return {
     subject: 'Welcome to Booking!',

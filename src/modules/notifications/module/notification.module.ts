@@ -19,6 +19,8 @@ import { OutboxPoller } from '@modules/notifications/infrastructure/repositories
 import { OUTBOX_POLLER_TIMEOUT } from '@/common/consts/outboxConsts';
 import { disconnectAllKafkaConsumer } from '@/infrastructure/kafka/kafkaHealth';
 import { gracefulShutdownDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
+import { registerPreHandlers } from '@modules/notifications/infrastructure/http/navigation/registerPreHandler';
+import { registerNotificationRoutes } from '@modules/notifications/infrastructure/http/navigation/notifications.router';
 
 export async function buildNotificationsModule(app: FastifyInstance) {
   const redisPubSub = new RedisPubSubFanOutService(pub, sub);
@@ -47,25 +49,8 @@ export async function buildNotificationsModule(app: FastifyInstance) {
 
   const eventDispatcher = new EventDispatcher();
   await startKafkaConsumers(eventDispatcher, outboxRepository, uow);
-  app.addHook('preHandler', async (request, reply) => {
-    const userId = request.headers['x-user-id'];
-    const role = request.headers['x-user-role'];
-    if (!userId || !role) {
-      reply.status(401).send({ message: 'Unauthorized' });
-      return;
-    }
-
-    request.user = {
-      userId: userId as string,
-      role: role as string,
-    };
-  });
-  app.get(`/notifications`, httpSSE.handle.bind(httpSSE));
-  app.get(`/notifications/feed`, feedHttp.handle.bind(feedHttp));
-  app.patch(
-    `/notifications/read`,
-    markNotificationsReadHttp.handle.bind(markNotificationsReadHttp),
-  );
+  registerPreHandlers(app);
+  registerNotificationRoutes(app, httpSSE, feedHttp, markNotificationsReadHttp);
 
   outboxPoller.start(OUTBOX_POLLER_TIMEOUT);
 

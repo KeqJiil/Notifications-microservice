@@ -28,8 +28,11 @@ const subjectByEventType: Partial<Record<EventType, string>> = {
   billing_refund: 'Your refund has been processed',
 };
 
-export function renderMessageEmail(notification: NotificationPayloadOfKind<'message'>): EmailContent {
-  const subject = subjectByEventType[notification.type] ?? 'Notification from Booking';
+export function renderMessageEmail(
+  notification: NotificationPayloadOfKind<'message'>,
+): EmailContent {
+  const subject =
+    subjectByEventType[notification.type] ?? 'Notification from Booking';
   return {
     subject,
     html: `<p>${notification.message}</p>`,

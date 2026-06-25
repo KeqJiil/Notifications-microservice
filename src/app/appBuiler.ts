@@ -2,6 +2,8 @@ import fastify from 'fastify';
 import { env } from '@/common/secrets/env';
 import fastifySSE from '@fastify/sse';
 import fastifyUnderPressure from '@fastify/under-pressure';
+import fastifyCors from '@fastify/cors';
+import fastifyHelmet from '@fastify/helmet';
 
 export function appBuilder() {
   const app = fastify({
@@ -14,6 +16,8 @@ export function appBuilder() {
     disableRequestLogging: false,
   });
   app.register(fastifySSE);
+  app.register(fastifyCors);
+  app.register(fastifyHelmet);
 
   app.register(fastifyUnderPressure, {
     maxEventLoopDelay: 1000,

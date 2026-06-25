@@ -5,15 +5,18 @@ import { renderAccountCreatedEmail } from '@modules/notifications/infrastructure
 
 export type { EmailContent };
 
-export function renderEmailTemplate(notification: NotificationPayload): EmailContent {
+export function renderEmailTemplate(
+  notification: NotificationPayload,
+): EmailContent {
   switch (notification.kind) {
     case 'message':
       return renderMessageEmail(notification);
     case 'accountCreated':
       return renderAccountCreatedEmail(notification);
     default: {
-      const exhaustiveCheck: never = notification;
-      throw new Error(`Unhandled notification kind: ${JSON.stringify(exhaustiveCheck)}`);
+      throw new Error(
+        `Unhandled notification kind: ${JSON.stringify(notification)}`,
+      );
     }
   }
 }

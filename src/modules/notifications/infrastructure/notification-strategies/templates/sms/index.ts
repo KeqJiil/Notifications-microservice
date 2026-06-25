@@ -9,8 +9,9 @@ export function renderSmsTemplate(notification: NotificationPayload): string {
     case 'accountCreated':
       return renderAccountCreatedSms();
     default: {
-      const exhaustiveCheck: never = notification;
-      throw new Error(`Unhandled notification kind: ${JSON.stringify(exhaustiveCheck)}`);
+      throw new Error(
+        `Unhandled notification kind: ${JSON.stringify(notification)}`,
+      );
     }
   }
 }

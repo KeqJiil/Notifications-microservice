@@ -6,6 +6,7 @@ import {
 import { renderEmailTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/email';
 import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
 import { RetryableException } from '@/common/errors/Retryable.exception';
+import { isClientErrorStatus } from '@/common/errors/helpers/isClientErrorStatus';
 
 export class EmailNotificationsStrategy implements IChannelStrategy {
   readonly channel = 'email' as const;
@@ -33,13 +34,7 @@ export class EmailNotificationsStrategy implements IChannelStrategy {
 
     if (!error) return;
 
-    const isNonRetryable =
-      error.statusCode !== null &&
-      error.statusCode >= 400 &&
-      error.statusCode < 500 &&
-      error.statusCode !== 429;
-
-    if (isNonRetryable) {
+    if (isClientErrorStatus(error.statusCode)) {
       throw new NonRetryableException(
         `Resend error ${error.name}: ${error.message}`,
       );
