@@ -3,10 +3,7 @@ import { IFeedService } from '@modules/notifications/infrastructure/http/FeedSer
 import { IFeedRepository } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { BadRequestException } from '@/common/errors/HTTPData.Exceptions';
-import {
-  decodeCursor,
-  encodeCursor,
-} from '@modules/notifications/infrastructure/http/feedCursor';
+import { FeedCursor } from '@modules/notifications/infrastructure/http/schemas/feedCursor';
 import { feedQuerySchema } from '@modules/notifications/infrastructure/http/schemas/feedQuery.schema';
 
 export class FeedFastifyPort implements IFeedService {
@@ -21,7 +18,7 @@ export class FeedFastifyPort implements IFeedService {
     }
 
     const cursor = parsedQuery.data.cursor
-      ? decodeCursor(parsedQuery.data.cursor)
+      ? FeedCursor.decode(parsedQuery.data.cursor)
       : undefined;
     const isRead =
       parsedQuery.data.isRead === undefined
@@ -37,7 +34,7 @@ export class FeedFastifyPort implements IFeedService {
     const lastItem = items[items.length - 1];
     const nextCursor =
       hasPreviousPage && lastItem
-        ? encodeCursor({ createdAt: lastItem.createdAt, id: lastItem.id })
+        ? FeedCursor.create(lastItem.createdAt, lastItem.id).encode()
         : null;
 
     reply.send({ items, hasPreviousPage, nextCursor });

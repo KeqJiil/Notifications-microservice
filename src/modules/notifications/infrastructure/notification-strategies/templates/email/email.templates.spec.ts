@@ -1,4 +1,4 @@
-/*import { renderEmailTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/email';
+import { renderEmailTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/email';
 import { NotificationPayload } from '@modules/notifications/application/abstractions/notifications/NotificationPayload';
 
 describe('renderEmailTemplate', () => {
@@ -18,10 +18,9 @@ describe('renderEmailTemplate', () => {
   it('falls back to a generic subject for an event without a mapped subject', () => {
     const notification: NotificationPayload = {
       kind: 'message',
-      type: 'password_changed',
+      type: 'unknown_event' as NotificationPayload['type'],
       message: 'hello',
     };
-    delete (notification as { type?: string }).type;
 
     const result = renderEmailTemplate(notification);
 
@@ -33,6 +32,7 @@ describe('renderEmailTemplate', () => {
       kind: 'accountCreated',
       type: 'account_created',
       data: {
+        type: 'account_created',
         userId: 'user-1',
         email: 'guest@example.com',
         phoneNumber: '+10000000000',
@@ -52,4 +52,3 @@ describe('renderEmailTemplate', () => {
     expect(result.html).toContain('guest@example.com');
   });
 });
-*/

@@ -1,4 +1,4 @@
-/*import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
+import { renderSmsTemplate } from '@modules/notifications/infrastructure/notification-strategies/templates/sms';
 import { NotificationPayload } from '@modules/notifications/application/abstractions/notifications/NotificationPayload';
 
 describe('renderSmsTemplate', () => {
@@ -9,7 +9,9 @@ describe('renderSmsTemplate', () => {
       message: 'You have a new chat message.',
     };
 
-    expect(renderSmsTemplate(notification)).toBe('You have a new chat message.');
+    expect(renderSmsTemplate(notification)).toBe(
+      'You have a new chat message.',
+    );
   });
 
   it('returns the static welcome text for an accountCreated notification', () => {
@@ -17,6 +19,7 @@ describe('renderSmsTemplate', () => {
       kind: 'accountCreated',
       type: 'account_created',
       data: {
+        type: 'account_created',
         userId: 'user-1',
         email: 'guest@example.com',
         phoneNumber: '+10000000000',
@@ -30,7 +33,8 @@ describe('renderSmsTemplate', () => {
       },
     };
 
-    expect(renderSmsTemplate(notification)).toMatch(/Welcome to Booking/);
+    expect(renderSmsTemplate(notification)).toBe(
+      'Welcome to Booking! Your account was created. Confirm it in the app to get started.',
+    );
   });
 });
-*/

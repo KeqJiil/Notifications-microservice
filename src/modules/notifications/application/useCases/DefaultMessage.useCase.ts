@@ -36,8 +36,12 @@ export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePaylo
         `User with id ${userId.toString()} not found`,
       );
 
-    if (!NotificationSend.isAbleToSend(user.settings, payload.payload.channel))
+    if (
+      !NotificationSend.isAbleToSend(user.settings, payload.payload.channel)
+    ) {
+      await this.inbox.markSuccess(inboxId);
       return;
+    }
 
     const strategy = this.senders.get(payload.payload.channel);
     if (!strategy)

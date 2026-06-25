@@ -9,6 +9,6 @@ module.exports = {
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(uuid|kysely)/)'],
   testEnvironment: 'node',
 };
