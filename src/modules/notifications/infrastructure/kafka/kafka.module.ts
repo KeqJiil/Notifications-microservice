@@ -22,6 +22,10 @@ import { reviewEventNames } from '@modules/notifications/application/abstraction
 import { bookingEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/booking.types';
 import { billingEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/billing.types';
 import { propertyEventNames } from '@modules/notifications/application/abstractions/incomingQueueTypes/property.types';
+import {
+  ACCOUNT_CREATED_EVENT_TYPES,
+  DUAL_RECIPIENT_EVENT_TYPES,
+} from '@modules/notifications/application/abstractions/incomingQueueTypes/eventRecipientGroups';
 import { startKafkaDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
 
 function toDispatcherHandler<T>(handler: IOutboxHandler<T>): Handler {
@@ -48,7 +52,6 @@ function registerIncomingHandlers(
   dispatcher.register(authEventNames.password_changed, single);
 
   dispatcher.register(userEventNames.able_to_leave_review, single);
-  dispatcher.register(userEventNames.account_created, accountCreated);
   dispatcher.register(userEventNames.new_role_received, single);
 
   dispatcher.register(importantEventNames.chat_created, single);
@@ -59,13 +62,8 @@ function registerIncomingHandlers(
   dispatcher.register(reviewEventNames.new_review_created, single);
   dispatcher.register(reviewEventNames.review_edited, single);
 
-  dispatcher.register(bookingEventNames.booking_created, dual);
   dispatcher.register(bookingEventNames.booking_paid, single);
   dispatcher.register(bookingEventNames.booking_expired, single);
-  dispatcher.register(bookingEventNames.booking_rejected, dual);
-  dispatcher.register(bookingEventNames.booking_cancelled, dual);
-  dispatcher.register(bookingEventNames.booking_confirmed, dual);
-  dispatcher.register(bookingEventNames.booking_completed, dual);
 
   dispatcher.register(billingEventNames.billing_refund, single);
 
@@ -75,6 +73,13 @@ function registerIncomingHandlers(
   dispatcher.register(propertyEventNames.property_images_updated, single);
   dispatcher.register(propertyEventNames.property_images_added, single);
   dispatcher.register(propertyEventNames.property_images_deleted, single);
+
+  for (const type of DUAL_RECIPIENT_EVENT_TYPES) {
+    dispatcher.register(type, dual);
+  }
+  for (const type of ACCOUNT_CREATED_EVENT_TYPES) {
+    dispatcher.register(type, accountCreated);
+  }
 }
 
 export async function startKafkaConsumers(

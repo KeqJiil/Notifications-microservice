@@ -3,6 +3,7 @@ import { RedisPubSubFanOutService } from '@modules/notifications/infrastructure/
 import { pub, sub } from '@/infrastructure/redis/redis';
 import { SSEFastifyPort } from '@modules/notifications/infrastructure/http/SSEFastifyPort';
 import { FeedFastifyPort } from '@modules/notifications/infrastructure/http/FeedFastifyPort';
+import { MarkNotificationsReadFastifyPort } from '@modules/notifications/infrastructure/http/MarkNotificationsReadFastifyPort';
 import { FeedRepository } from '@modules/notifications/infrastructure/repositories/feed.repository';
 import { startKafkaConsumers } from '@modules/notifications/infrastructure/kafka/kafka.module';
 import { FanOutService } from '@modules/notifications/application/services/FanOut.service';
@@ -29,6 +30,9 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   const inboxRepository = new InboxRepository(db, kyselyTxContext);
   const feedRepository = new FeedRepository(db, kyselyTxContext);
   const feedHttp = new FeedFastifyPort(feedRepository);
+  const markNotificationsReadHttp = new MarkNotificationsReadFastifyPort(
+    feedRepository,
+  );
   const uow = new UoWRepository(db, kyselyTxContext);
   const userRepo = new UserNotificationsRepository(db, kyselyTxContext);
 
@@ -58,6 +62,10 @@ export async function buildNotificationsModule(app: FastifyInstance) {
   });
   app.get(`/notifications`, httpSSE.handle.bind(httpSSE));
   app.get(`/notifications/feed`, feedHttp.handle.bind(feedHttp));
+  app.patch(
+    `/notifications/read`,
+    markNotificationsReadHttp.handle.bind(markNotificationsReadHttp),
+  );
 
   outboxPoller.start(OUTBOX_POLLER_TIMEOUT);
 

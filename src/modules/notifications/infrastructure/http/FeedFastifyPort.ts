@@ -1,42 +1,34 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { IFeedService } from '@modules/notifications/infrastructure/http/FeedService.interface';
-import {
-  IFeedCursor,
-  IFeedRepository,
-} from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
+import { IFeedRepository } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
 import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { BadRequestException } from '@/common/errors/HTTPData.Exceptions';
-
-function decodeCursor(cursor: string): IFeedCursor {
-  const [createdAtRaw, id] = Buffer.from(cursor, 'base64')
-    .toString('utf8')
-    .split('_');
-
-  const createdAt = new Date(createdAtRaw);
-  if (!id || Number.isNaN(createdAt.getTime())) {
-    throw new BadRequestException();
-  }
-
-  return { createdAt, id };
-}
-
-function encodeCursor(cursor: IFeedCursor): string {
-  return Buffer.from(`${cursor.createdAt.toISOString()}_${cursor.id}`).toString(
-    'base64',
-  );
-}
+import { decodeCursor, encodeCursor, } from '@modules/notifications/infrastructure/http/feedCursor';
+import { feedQuerySchema } from '@modules/notifications/infrastructure/http/schemas/feedQuery.schema';
 
 export class FeedFastifyPort implements IFeedService {
   constructor(private readonly feedRepository: IFeedRepository) {}
 
   async handle(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const userId = new UserId(request.user.userId);
-    const rawCursor = (request.query as { cursor?: string }).cursor;
-    const cursor = rawCursor ? decodeCursor(rawCursor) : undefined;
+
+    const parsedQuery = feedQuerySchema.safeParse(request.query);
+    if (!parsedQuery.success) {
+      throw new BadRequestException();
+    }
+
+    const cursor = parsedQuery.data.cursor
+      ? decodeCursor(parsedQuery.data.cursor)
+      : undefined;
+    const isRead =
+      parsedQuery.data.isRead === undefined
+        ? undefined
+        : parsedQuery.data.isRead === 'true';
 
     const { items, hasPreviousPage } = await this.feedRepository.getAll(
       userId,
       cursor,
+      { isRead },
     );
 
     const lastItem = items[items.length - 1];

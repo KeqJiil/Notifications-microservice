@@ -12,8 +12,6 @@ export type Generated<T> =
 
 export type Json = JsonValue;
 
-export type OutboxStatus = 'DEAD' | 'PENDING' | 'SUCCESS';
-
 export type JsonArray = JsonValue[];
 
 export type JsonObject = {
@@ -23,6 +21,8 @@ export type JsonObject = {
 export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
+export type OutboxStatus = 'DEAD' | 'PENDING' | 'SUCCESS';
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
@@ -36,8 +36,9 @@ export interface Inbox {
 
 export interface Notifications {
   created_at: Generated<Timestamp>;
-  idempotency_key: string;
   id: Generated<string>;
+  idempotency_key: string;
+  is_read: Generated<boolean>;
   payload: Json | null;
   user_id: string;
 }

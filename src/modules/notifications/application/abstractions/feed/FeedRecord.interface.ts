@@ -7,4 +7,5 @@ export interface IFeedRecord {
   userId: UserId;
   payload: NotificationPayload;
   createdAt: Date;
+  isRead: boolean;
 }

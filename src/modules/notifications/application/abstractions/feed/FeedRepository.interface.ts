@@ -11,6 +11,10 @@ export interface IFeedPage {
   hasPreviousPage: boolean;
 }
 
+export interface IFeedFilter {
+  isRead?: boolean;
+}
+
 export interface IFeedRepository {
   insert(record: {
     idempotencyKey: string;
@@ -18,5 +22,10 @@ export interface IFeedRepository {
     payload: unknown;
     createdAt: Date;
   }): Promise<void>;
-  getAll(userId: UserId, cursor?: IFeedCursor): Promise<IFeedPage>;
+  getAll(
+    userId: UserId,
+    cursor?: IFeedCursor,
+    filter?: IFeedFilter,
+  ): Promise<IFeedPage>;
+  markAsRead(userId: UserId, ids: string[]): Promise<void>;
 }

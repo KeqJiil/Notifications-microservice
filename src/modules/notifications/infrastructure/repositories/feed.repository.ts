@@ -2,6 +2,7 @@ import { Kysely, sql } from 'kysely';
 import { DB } from '@/infrastructure/database/types';
 import {
   IFeedCursor,
+  IFeedFilter,
   IFeedPage,
   IFeedRepository,
 } from '@modules/notifications/application/abstractions/feed/FeedRepository.interface';
@@ -38,7 +39,11 @@ export class FeedRepository implements IFeedRepository {
       .execute();
   }
 
-  async getAll(userId: UserId, cursor?: IFeedCursor): Promise<IFeedPage> {
+  async getAll(
+    userId: UserId,
+    cursor?: IFeedCursor,
+    filter?: IFeedFilter,
+  ): Promise<IFeedPage> {
     let query = this.tx
       .selectFrom('notifications')
       .selectAll()
@@ -53,6 +58,10 @@ export class FeedRepository implements IFeedRepository {
       );
     }
 
+    if (filter?.isRead !== undefined) {
+      query = query.where('is_read', '=', filter.isRead);
+    }
+
     const rows = await query.execute();
     const hasPreviousPage = rows.length > FEED_PAGE_SIZE;
     const items: IFeedRecord[] = rows.slice(0, FEED_PAGE_SIZE).map((row) => ({
@@ -61,8 +70,20 @@ export class FeedRepository implements IFeedRepository {
       userId: new UserId(row.user_id),
       payload: row.payload as unknown as NotificationPayload,
       createdAt: row.created_at,
+      isRead: row.is_read,
     }));
 
     return { items, hasPreviousPage };
+  }
+
+  async markAsRead(userId: UserId, ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+
+    await this.tx
+      .updateTable('notifications')
+      .set({ is_read: true })
+      .where('user_id', '=', userId.toString())
+      .where('id', 'in', ids)
+      .execute();
   }
 }

@@ -7,6 +7,7 @@ import { BillingEvent, billingEventNames } from './billing.types';
 import { ImportantEvent, importantEventNames } from './important.types';
 
 export * from './message.interface';
+export * from './eventRecipientGroups';
 export * from './auth.types';
 export * from './user.types';
 export * from './property.types';

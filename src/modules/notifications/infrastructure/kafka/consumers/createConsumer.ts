@@ -1,7 +1,12 @@
+import { ZodError } from 'zod';
 import { kafka } from '@/infrastructure/kafka/kafka';
 import { trackConsumerHealth } from '@/infrastructure/kafka/kafkaHealth';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
 import { Event } from '@modules/notifications/application/abstractions/incomingQueueTypes';
+import {
+  eventEnvelopeSchema,
+  getPayloadSchema,
+} from '@modules/notifications/application/abstractions/incomingQueueTypes/event.schema';
 import { logger } from '@/app/logger';
 import { NonRetryableException } from '@/common/errors/NonRetryable.exception';
 import { sendToDlqProducer } from '@modules/notifications/infrastructure/kafka/producer/dlq.producer';
@@ -46,11 +51,18 @@ export async function createKafkaConsumer({
         }
 
         try {
-          const event = JSON.parse(message.value.toString()) as Event;
+          const raw = JSON.parse(message.value.toString());
+          const envelope = eventEnvelopeSchema.parse(raw);
+          const payload = getPayloadSchema(envelope.type).parse(
+            envelope.payload,
+          );
+          const event = { ...envelope, payload } as Event;
           await dispatcher.process(event.type, event);
         } catch (err) {
           const isNonRetryable =
-            err instanceof SyntaxError || err instanceof NonRetryableException;
+            err instanceof SyntaxError ||
+            err instanceof ZodError ||
+            err instanceof NonRetryableException;
           if (isNonRetryable) {
             logger.error(
               `[Kafka] Non-retryable, sending to DLQ. Topic "${topic}" offset ${message.offset}:`,
