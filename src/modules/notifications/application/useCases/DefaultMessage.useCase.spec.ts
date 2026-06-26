@@ -173,8 +173,7 @@ describe('DefaultMessageUseCase', () => {
 
     await useCase.execute(payload);
 
-    const inboxId = `${payload.payload.channel}:${payload.payload.userId}:${payload.eventId}`;
-    expect(inbox.markSuccess).toHaveBeenCalledWith(inboxId);
+    expect(inbox.markSuccess).toHaveBeenCalledWith(payload.id);
   });
 
   it('is idempotent: second run with same eventId/channel/userId does not send twice', async () => {

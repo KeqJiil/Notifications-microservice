@@ -1,31 +1,45 @@
 import { FastifyInstance } from 'fastify';
 import { appBuilder } from '@/app/appBuiler';
-import { afterEach } from 'node:test';
 import { db } from '@/infrastructure/database/database';
 import { randomUUID } from 'node:crypto';
 import { MARK_AS_READ_MAX_IDS } from '@/common/consts/feedConsts';
 
 jest.mock('@/infrastructure/redis/redis');
-jest.mock('@/infrastructure/kafka/kafka', () => ({
-  kafka: {
-    producer: jest.fn(() => ({
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      send: jest.fn(),
+jest.mock('@/infrastructure/kafka/kafka', () => {
+  const producer = {
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    send: jest.fn(),
+  };
+  const consumer = {
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    subscribe: jest.fn(),
+    run: jest.fn(),
+    seek: jest.fn(),
+    on: jest.fn(),
+    events: {
+      CONNECT: 'consumer.connect',
+      DISCONNECT: 'consumer.disconnect',
+      CRASH: 'consumer.crash',
+      GROUP_JOIN: 'consumer.group_join',
+    },
+  };
+  return {
+    getKafka: jest.fn(() => ({
+      producer: jest.fn(() => producer),
+      consumer: jest.fn(() => consumer),
     })),
-    consumer: jest.fn(() => ({
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      subscribe: jest.fn(),
-      run: jest.fn(),
-      on: jest.fn(),
-      events: {
-        CONNECT: 'consumer.connect',
-        DISCONNECT: 'consumer.disconnect',
-      },
-    })),
-  },
-}));
+    resetKafka: jest.fn(),
+  };
+});
+
+// feed.routes.spec.ts runs in a different jest worker against this same shared
+// dev Postgres (it's not Testcontainers-isolated). A blanket
+// `deleteFrom('notifications')` in afterEach would wipe rows the other file's
+// concurrently-running test just inserted -> FK violations. Track and delete
+// only what THIS file created.
+const seededUserIds: string[] = [];
 
 async function seedUser(
   overrides: Partial<{ userId: string; email: string }> = {},
@@ -38,6 +52,7 @@ async function seedUser(
       email: overrides.email ?? `${userId}@test.local`,
     })
     .execute();
+  seededUserIds.push(userId);
   return userId;
 }
 
@@ -80,8 +95,14 @@ describe('PATCH /notifications/read (integration)', () => {
   });
 
   afterEach(async () => {
-    await db.deleteFrom('notifications').execute();
-    await db.deleteFrom('user_notifications').execute();
+    if (seededUserIds.length === 0) return;
+    // notifications.user_id has ON DELETE CASCADE, so deleting the seeded users
+    // also removes their notifications without touching other workers' rows.
+    await db
+      .deleteFrom('user_notifications')
+      .where('user_id', 'in', seededUserIds)
+      .execute();
+    seededUserIds.length = 0;
   });
 
   it('400 when ids is an empty array (.min(1))', async () => {

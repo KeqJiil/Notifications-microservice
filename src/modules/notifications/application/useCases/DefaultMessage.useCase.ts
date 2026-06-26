@@ -24,7 +24,7 @@ export class DefaultMessageUseCase implements IUseCase<OutboxDefaultMessagePaylo
   async execute(
     payload: OutboxRecord<OutboxDefaultMessagePayload>,
   ): Promise<void> {
-    const inboxId = `${payload.payload.channel}:${payload.payload.userId}:${payload.eventId}`;
+    const inboxId = payload.id;
     await this.inbox.insert(inboxId);
     const inboxData = await this.inbox.get(inboxId);
     if (inboxData?.success) return;
