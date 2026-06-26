@@ -4,8 +4,10 @@ import fastifySSE from '@fastify/sse';
 import fastifyUnderPressure from '@fastify/under-pressure';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
+import { buildNotificationsModule } from '@modules/notifications/module/notification.module';
+import { registerHealthchecks } from '@modules/healthchecks/healthchecks.module';
 
-export function appBuilder() {
+export async function appBuilder() {
   const app = fastify({
     logger: {
       level: 'info',
@@ -28,6 +30,9 @@ export function appBuilder() {
       url: '/health/live',
     },
   });
+
+  registerHealthchecks(app);
+  await buildNotificationsModule(app);
 
   return app;
 }

@@ -1,4 +1,4 @@
-import { kafka } from '@/infrastructure/kafka/kafka';
+import { getKafka } from '@/infrastructure/kafka/kafka';
 import { trackConsumerHealth } from '@/infrastructure/kafka/kafkaHealth';
 import { EventDispatcher } from '@modules/notifications/infrastructure/kafka/dispatchers/event.dispatcher';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
@@ -16,7 +16,7 @@ export async function createKafkaConsumer({
   groupId,
   dispatcher,
 }: ConsumerOptions): Promise<void> {
-  const consumer = kafka.consumer({ groupId });
+  const consumer = getKafka().consumer({ groupId });
   trackConsumerHealth(groupId, consumer);
 
   await consumer.connect();

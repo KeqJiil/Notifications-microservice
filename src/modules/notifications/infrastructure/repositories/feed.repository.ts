@@ -40,14 +40,14 @@ export class FeedRepository implements IFeedRepository {
   }
 
   async getAll(
-    userId: UserId,
+    userId: string,
     cursor?: IFeedCursor,
     filter?: IFeedFilter,
   ): Promise<IFeedPage> {
     let query = this.tx
       .selectFrom('notifications')
       .selectAll()
-      .where('user_id', '=', userId.toString())
+      .where('user_id', '=', userId)
       .orderBy('created_at', 'desc')
       .orderBy('id', 'desc')
       .limit(FEED_PAGE_SIZE + 1);
@@ -67,7 +67,7 @@ export class FeedRepository implements IFeedRepository {
     const items: IFeedRecord[] = rows.slice(0, FEED_PAGE_SIZE).map((row) => ({
       id: row.id,
       idempotencyKey: row.idempotency_key,
-      userId: new UserId(row.user_id),
+      userId: row.user_id,
       payload: row.payload as unknown as NotificationPayload,
       createdAt: row.created_at,
       isRead: row.is_read,

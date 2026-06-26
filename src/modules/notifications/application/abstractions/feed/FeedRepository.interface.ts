@@ -23,7 +23,7 @@ export interface IFeedRepository {
     createdAt: Date;
   }): Promise<void>;
   getAll(
-    userId: UserId,
+    userId: string,
     cursor?: IFeedCursor,
     filter?: IFeedFilter,
   ): Promise<IFeedPage>;

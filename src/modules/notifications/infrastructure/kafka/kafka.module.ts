@@ -89,14 +89,19 @@ export async function startKafkaConsumers(
 ): Promise<void> {
   registerIncomingHandlers(eventDispatcher, outboxRepository, uow);
 
-  await Promise.all([
-    startAuthKafkaConsumer(eventDispatcher),
-    startUserKafkaConsumer(eventDispatcher),
-    startImportantKafkaConsumer(eventDispatcher),
-    startReviewKafkaConsumer(eventDispatcher),
-    startBookingKafkaConsumer(eventDispatcher),
-    startBillingKafkaConsumer(eventDispatcher),
-    startPropertyKafkaConsumer(eventDispatcher),
-    startKafkaDlqProducer(),
-  ]);
+  await startKafkaDlqProducer();
+
+  const consumerStarters = [
+    startAuthKafkaConsumer,
+    startUserKafkaConsumer,
+    startImportantKafkaConsumer,
+    startReviewKafkaConsumer,
+    startBookingKafkaConsumer,
+    startBillingKafkaConsumer,
+    startPropertyKafkaConsumer,
+  ];
+
+  for (const start of consumerStarters) {
+    await start(eventDispatcher);
+  }
 }
