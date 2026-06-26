@@ -18,7 +18,7 @@ export class InAppNotificationsStrategy implements IChannelStrategy {
     const userId = ctx.userId.toString();
     const message = renderInAppTemplate(ctx.notification);
 
-    await this.feed.insert({
+    const { id } = await this.feed.insert({
       idempotencyKey: ctx.idempotencyKey,
       userId: ctx.userId,
       payload: ctx.notification,
@@ -26,6 +26,7 @@ export class InAppNotificationsStrategy implements IChannelStrategy {
     });
 
     await this.fanOut.pushOne({
+      id,
       userId,
       message,
       createdAt: ctx.createdAt.toISOString(),

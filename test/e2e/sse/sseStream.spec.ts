@@ -29,6 +29,7 @@ async function waitFor(
 
 function makeMessage(userId: string): PubSubMessage {
   return {
+    id: randomUUID(),
     userId,
     message: 'hello',
     createdAt: new Date().toISOString(),

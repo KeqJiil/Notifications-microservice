@@ -21,7 +21,7 @@ export interface IFeedRepository {
     userId: UserId;
     payload: unknown;
     createdAt: Date;
-  }): Promise<void>;
+  }): Promise<{ id: string }>;
   getAll(
     userId: string,
     cursor?: IFeedCursor,

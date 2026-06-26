@@ -11,6 +11,7 @@ import { UserId } from '@modules/notifications/domain/TypedId/UserId';
 import { KyselyTransactionContext } from '@modules/notifications/infrastructure/repositories/kyselyTransactionContext';
 import { FEED_PAGE_SIZE } from '@/common/consts/feedConsts';
 import { NotificationPayload } from '@modules/notifications/application/abstractions/notifications/NotificationPayload';
+import { randomUUID } from 'node:crypto';
 
 export class FeedRepository implements IFeedRepository {
   constructor(
@@ -27,16 +28,21 @@ export class FeedRepository implements IFeedRepository {
     userId: UserId;
     payload: unknown;
     createdAt: Date;
-  }): Promise<void> {
+  }): Promise<{ id: string }> {
+    const id = randomUUID();
+
     await this.tx
       .insertInto('notifications')
       .values({
+        id,
         idempotency_key: record.idempotencyKey,
         user_id: record.userId.toString(),
         payload: JSON.stringify(record.payload),
       })
       .onConflict((oc) => oc.column('idempotency_key').doNothing())
-      .execute();
+      .executeTakeFirst();
+
+    return { id };
   }
 
   async getAll(
