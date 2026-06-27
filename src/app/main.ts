@@ -6,6 +6,7 @@ async function start() {
   const app = await appBuilder();
   await app.listen({
     port: env.PORT,
+    host: '0.0.0.0',
   });
 
   async function shutdown(app: FastifyInstance) {
