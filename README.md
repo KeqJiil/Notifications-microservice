@@ -105,6 +105,14 @@ src/
 
 **Consequences:** adding a new preference or channel means touching one policy and one value object, not every place a send happens. In-app notifications deliberately bypass the channel-preference gate (always delivered to the feed) since they're the lowest-friction channel and the in-app surface itself is opt-in by virtue of the user being logged in.
 
+### Why `FOR UPDATE SKIP LOCKED` is only a lease, not a held lock — and why no transaction spans claim → process → ack
+
+**Context:** `claimBatch` needs to guarantee that two `OutboxPoller` instances polling concurrently never process the same row, but the actual work after claiming — calling Resend/Twilio — is a network call of unbounded duration. Holding a Postgres row lock (or a transaction) open across that call would tie up a connection from the pool for as long as the slowest external API response takes, and a single slow/hanging HTTP call could starve the whole poller.
+
+**Decision:** `claimBatch` is a single, self-contained `UPDATE outbox SET next_attempt_at = <lease> WHERE id IN (SELECT ... FOR UPDATE SKIP LOCKED)` statement, run outside any application transaction (`KyselyTransactionContext` has no active transaction on the poller's path). The `FOR UPDATE SKIP LOCKED` lock is held only for the duration of that one statement — it exists purely to make the "pick the next free batch and stamp it with a lease" step atomic across concurrent pollers. As soon as it commits, the lock is gone; from that point on, the row is protected by `next_attempt_at` (a timestamp-based lease/visibility-timeout, the same idea SQS or Sidekiq use) rather than by holding anything in the database. Every later step — `inbox.insert`, `inbox.get`, `userRepository.findById`, `strategy.send(ctx)`, `inbox.markSuccess` — is its own independent auto-committing statement; nothing wraps the whole claim → process → ack sequence in a transaction.
+
+**Consequences:** no connection is ever held open for the duration of a third-party HTTP call, so a slow or hanging Resend/Twilio request can't starve other pollers or exhaust the pool. The tradeoff is that consistency across the pipeline isn't transactional — it's idempotency-based: if the process crashes between any two steps, the lease eventually expires and another poller re-claims the row, and the unique constraints on `outbox.event_id` / `inbox.event_id` (plus the `inbox.success` check at the top of `DefaultMessageUseCase`) make that replay a no-op instead of a duplicate send. This only works because every step is individually idempotent — there's no multi-statement invariant left that actually needs transactional atomicity to stay correct.
+
 ---
 
 ## Notification Lifecycle
